@@ -4,7 +4,10 @@ from math import factorial, isqrt, prod
 from order2_debruijn_arithmetic import (
     add_states,
     anti_rho2,
+    divmod_states,
+    floordiv_states,
     lambda2,
+    mod_states,
     mul_states,
     no_sqrt_rho2,
     rho2,
@@ -12,8 +15,11 @@ from order2_debruijn_arithmetic import (
 from order3_debruijn_arithmetic import (
     add_states3,
     anti_rho3,
+    divmod_states3,
+    floordiv_states3,
     integer_cuberoot,
     lambda3,
+    mod_states3,
     mul_states3,
     omega3,
     rho3,
@@ -340,6 +346,19 @@ def verify_order2_results() -> tuple[int, int]:
             assert add_carries <= left_layer + right_layer
             assert mul_carries <= left_layer + right_layer
 
+            if rho2(right) > 0:
+                quo_rank, rem_rank = divmod(rho2(left), rho2(right))
+                quotient, remainder = divmod_states(left, right)
+                quotient_layer = lambda2(quotient)[0]
+                remainder_layer = lambda2(remainder)[0]
+
+                assert quotient == anti_rho2(quo_rank)
+                assert remainder == anti_rho2(rem_rank)
+                assert floordiv_states(left, right) == quotient
+                assert mod_states(left, right) == remainder
+                assert left_layer // (right_layer + 1) <= quotient_layer <= left_layer // right_layer
+                assert 0 <= remainder_layer <= right_layer
+
     assert words[:16] == [
         (0, 0),
         (0, 1),
@@ -363,6 +382,7 @@ def verify_order2_results() -> tuple[int, int]:
     assert [rank[word] for word in [(1, 2), (1, 3), (1, 4)]] == [6, 11, 18]
     assert add_states((2, 4), (3, 1)) == (5, 3)
     assert mul_states((1, 2), (2, 0)) == (6, 0)
+    assert divmod_states((2, 4), (3, 1)) == ((1, 1), (0, 0))
 
     return 500, 120 ** 2
 
@@ -392,6 +412,19 @@ def verify_order3_results() -> tuple[int, int]:
             assert add_carries <= left_layer + right_layer
             assert mul_carries <= left_layer + right_layer
 
+            if rho3(right) > 0:
+                quo_rank, rem_rank = divmod(rho3(left), rho3(right))
+                quotient, remainder = divmod_states3(left, right)
+                quotient_layer = lambda3(quotient)[0]
+                remainder_layer = lambda3(remainder)[0]
+
+                assert quotient == anti_rho3(quo_rank)
+                assert remainder == anti_rho3(rem_rank)
+                assert floordiv_states3(left, right) == quotient
+                assert mod_states3(left, right) == remainder
+                assert left_layer // (right_layer + 1) <= quotient_layer <= left_layer // right_layer
+                assert 0 <= remainder_layer <= right_layer
+
     assert words[8:27] == [
         (0, 0, 2),
         (0, 2, 1),
@@ -416,6 +449,7 @@ def verify_order3_results() -> tuple[int, int]:
     assert rho3((1, 2, 0)) == 18
     assert anti_rho3(23) == (1, 2, 2)
     assert add_states3((1, 2, 0), (0, 2, 1)) == (0, 0, 3)
+    assert divmod_states3(anti_rho3(20), anti_rho3(11)) == (anti_rho3(1), anti_rho3(9))
 
     return 900, 90 ** 2
 
@@ -433,8 +467,8 @@ def main() -> None:
     print("Verified layer-count formula on", layer_cases, "small cases.")
     print("Verified compatible onion-prefix count on", prefix_cases, "small cases.")
     print("Verified universal structural/arithmetic consequences on", small_prefixes, "exhaustively generated finite onion prefixes.")
-    print("Verified order-2 rank/unrank on", order2_states, "states and direct addition/multiplication plus carry counts on", order2_pairs, "pairs.")
-    print("Verified order-3 rank/unrank on", order3_states, "states and direct addition/multiplication plus carry counts on", order3_pairs, "pairs.")
+    print("Verified order-2 rank/unrank on", order2_states, "states and direct addition/multiplication/division plus carry and layer-bound checks on", order2_pairs, "pairs.")
+    print("Verified order-3 rank/unrank on", order3_states, "states and direct addition/multiplication/division plus carry and layer-bound checks on", order3_pairs, "pairs.")
 
 
 if __name__ == "__main__":

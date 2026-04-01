@@ -138,3 +138,21 @@ def mul_states3(x: tuple[int, int, int], y: tuple[int, int, int]) -> tuple[int, 
     E = S % 3
     M, U, E = carry_up(M, U, E)
     return omega3(M, U, E)
+
+
+def divmod_states3(
+    x: tuple[int, int, int], y: tuple[int, int, int]
+) -> tuple[tuple[int, int, int], tuple[int, int, int]]:
+    divisor = rho3(y)
+    if divisor == 0:
+        raise ZeroDivisionError("division by zero onion state")
+    quotient, remainder = divmod(rho3(x), divisor)
+    return anti_rho3(quotient), anti_rho3(remainder)
+
+
+def floordiv_states3(x: tuple[int, int, int], y: tuple[int, int, int]) -> tuple[int, int, int]:
+    return divmod_states3(x, y)[0]
+
+
+def mod_states3(x: tuple[int, int, int], y: tuple[int, int, int]) -> tuple[int, int, int]:
+    return divmod_states3(x, y)[1]
