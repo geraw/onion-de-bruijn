@@ -1,5 +1,17 @@
-def rho2(x: tuple[int, int]) -> int:
-    a, b = x
+Order2State = tuple[int, int]
+
+def parse_state(raw_state: Order2State | str | int) -> Order2State:
+    if isinstance(raw_state, int):
+        raw_state = f'{raw_state:02}'
+    if isinstance(raw_state, str):
+        state = int(raw_state[0], 36), int(raw_state[1], 36)
+    else:
+        state = raw_state
+    return state
+
+
+def rho2(state: Order2State | str | int) -> int:
+    a, b = parse_state(state)
     if a < b:
         return b ** 2 + 2 * a
     elif 0 < b <= a:
@@ -8,23 +20,19 @@ def rho2(x: tuple[int, int]) -> int:
         return a ** 2 + 2 * a
 
 
-def anti_rho2(N: int) -> tuple[int, int]:
-    m = int(N ** 0.5)
-    while (m + 1) ** 2 <= N:
-        m += 1
-    while m ** 2 > N:
-        m -= 1
-    t = N - m ** 2
-    if t % 2:
-        return m, (t + 1) // 2
-    elif t < 2 * m:
-        return t // 2, m
+def inverse_rho2(index: int) -> Order2State:
+    layer = int(index ** 0.5)
+    word_index = index - layer ** 2
+    if word_index % 2:
+        return layer, (word_index + 1) // 2
+    elif word_index < 2 * layer:
+        return word_index // 2, layer
     else:
-        return m, 0
+        return layer, 0
 
 
-def lambda2(x: tuple[int, int]) -> tuple[int, int, int]:
-    a, b = x
+def lambda2(state: Order2State | str | int) -> tuple[int, int, int]:
+    a, b = parse_state(state)
     if a < b:
         return b, a, 0
     elif b == 0:
@@ -33,66 +41,60 @@ def lambda2(x: tuple[int, int]) -> tuple[int, int, int]:
         return a, b, 1
 
 
-def no_sqrt_rho2(x: tuple[int, int]) -> int:
-    m, u, e = lambda2(x)
-    return m ** 2 + 2 * u - e
-
-
-def omega2(m: int, u: int, e: int) -> tuple[int, int]:
-    if e == 0:
-        if u < m:
-            return u, m
-        return m, 0
-    return m, u
-
-
-def carry_down(m: int, u: int, e: int) -> tuple[int, int, int]:
-    while (e == 0 and u < 0) or (e == 1 and u <= 0):
-        if e == 0:
-            m, u, e = m - 1, u + m, 1
+def inverse_lambda2(layer: int, word_index: int, offset: int) -> Order2State:
+    if offset == 0:
+        if word_index < layer:
+            return word_index, layer
         else:
-            m, u, e = m - 1, u + m - 1, 0
-    return m, u, e
+            return layer, 0
+    else:
+        return layer, word_index
 
 
-def add_states(x: tuple[int, int], y: tuple[int, int]) -> tuple[int, int]:
-    m, u, e = lambda2(x)
-    n, v, t = lambda2(y)
-    M = m + n
-    U = u + v - m * n - (e + t) // 2
-    E = (e + t) % 2
-    M, U, E = carry_down(M, U, E)
-    return omega2(M, U, E)
+def carry_down(layer: int, word_index: int, offset: int) -> tuple[int, int, int]:
+    while (word_index + 1 - offset) <= 0:
+        layer, word_index, offset = layer - 1, word_index + layer - offset, 1 - offset
+    return layer, word_index, offset
 
 
-def carry_up(m: int, u: int, e: int) -> tuple[int, int, int]:
-    while u > m:
-        m, u, e = m + 1, u - m - e, 1 - e
-    return m, u, e
+def carry_up(layer: int, word_index: int, offset: int) -> tuple[int, int, int]:
+    while word_index > layer:
+        layer, word_index, offset = layer + 1, word_index - layer - offset, 1 - offset
+    return layer, word_index, offset
 
 
-def mul_states(x: tuple[int, int], y: tuple[int, int]) -> tuple[int, int]:
-    m, u, e = lambda2(x)
-    n, v, t = lambda2(y)
-    M = m * n
-    S = t * m ** 2 + e * n ** 2 - e * t
-    U = m ** 2 * v + n ** 2 * u + 2 * u * v - u * t - v * e - S // 2
-    E = S % 2
-    M, U, E = carry_up(M, U, E)
-    return omega2(M, U, E)
+def add_states2(state1: Order2State | str | int, state2: Order2State | str | int) -> Order2State:
+    layer1, word_index1, offset1 = lambda2(state1)
+    layer2, word_index2, offset2 = lambda2(state2)
+    combined_layer = layer1 + layer2
+    combined_word_index = word_index1 + word_index2 - layer1 * layer2 - (offset1 + offset2) // 2
+    combined_offset = (offset1 + offset2) % 2
+    combined_layer, combined_word_index, combined_offset = carry_down(combined_layer, combined_word_index, combined_offset)
+    return inverse_lambda2(combined_layer, combined_word_index, combined_offset)
 
 
-def divmod_states(x: tuple[int, int], y: tuple[int, int]) -> tuple[tuple[int, int], tuple[int, int]]:
-    divisor = rho2(y)
+def mul_states2(state1: Order2State | str | int, state2: Order2State | str | int) -> Order2State:
+    layer1, word_index1, offset1 = lambda2(state1)
+    layer2, word_index2, offset2 = lambda2(state2)
+    combined_layer = layer1 * layer2
+    offset_remainder = offset2 * layer1 ** 2 + offset1 * layer2 ** 2 - offset1 * offset2
+    combined_word_index = layer1 ** 2 * word_index2 + layer2 ** 2 * word_index1 + 2 * word_index1 * word_index2 - word_index1 * offset2 - word_index2 * offset1 - offset_remainder // 2
+    combined_offset = offset_remainder % 2
+    combined_layer, combined_word_index, combined_offset = carry_up(combined_layer, combined_word_index, combined_offset)
+    return inverse_lambda2(combined_layer, combined_word_index, combined_offset)
+
+
+def divmod_states2(state1: Order2State, state2: Order2State) -> tuple[Order2State, Order2State]:
+    divisor = rho2(state2)
     if divisor == 0:
         raise ZeroDivisionError("division by zero onion state")
-    quotient, remainder = divmod(rho2(x), divisor)
-    return anti_rho2(quotient), anti_rho2(remainder)
+    quotient, remainder = divmod(rho2(state1), divisor)
+    return inverse_rho2(quotient), inverse_rho2(remainder)
 
 
-def floordiv_states(x: tuple[int, int], y: tuple[int, int]) -> tuple[int, int]:
-    return divmod_states(x, y)[0]
+def floordiv_states2(state1: Order2State, state2: Order2State) -> Order2State:
+    return divmod_states2(state1, state2)[0]
 
 
-def mod_states(x: tuple[int, int], y: tuple[int, int]) -> tuple[int, int]:
-    return divmod_states(x, y)[1]
+def mod_states2(state1: Order2State, state2: Order2State) -> Order2State:
+    return divmod_states2(state1, state2)[1]
