@@ -3,3 +3,6 @@ __pycache__/
 *.pyo
 *.pyd
 
+.history/
+.vscode/
+.pytest_cache
