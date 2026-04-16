@@ -146,10 +146,8 @@ def iter_finite_onion_prefixes(n: int, j: int):
 
 
 @pytest.mark.parametrize(('order', 'top_layer'), ((2, 5), (3, 3), (4, 2)))
-def test_small_universal_properties(order: int, top_layer: int) -> int:
-    checked = 0
+def test_small_universal_properties(order: int, top_layer: int):
     for prefix in iter_finite_onion_prefixes(order, top_layer):
-        checked += 1
         for k in range(1, top_layer + 1):
             assert_debruijn(prefix[: k ** order], k, order)
 
@@ -183,7 +181,6 @@ def test_small_universal_properties(order: int, top_layer: int) -> int:
                     for sigma in range(mu + 1, top_layer):
                         word = left + (sigma,) + right
                         assert sigma ** order <= rank[word] < (sigma + 1) ** order
-    return checked
 
 
 @pytest.mark.parametrize(('n', 'k'), tuple(product(range(2, 6), range(2, 6))))
