@@ -15,10 +15,10 @@ The repository contains reference implementations for the explicit arithmetic de
   Implements the order-2 rank and unrank maps, the canonical layer/offset coordinates, direct addition and multiplication, and transported quotient/remainder in the order-2 onion representation.
 - `order3_debruijn_arithmetic.py`
   Implements the analogous order-3 rank and unrank maps, canonical coordinates, direct addition and multiplication, and transported quotient/remainder in the order-3 onion representation.
-- `verify_results.py`
+- `tests/`
   Reproduces the finite computational checks from the paper, including De Bruijn/onion structure checks, counting formulas on small instances, and exhaustive arithmetic verification for the order-2 and order-3 constructions.
 
-The code uses only the Python standard library.
+The code uses only the Python standard library and pytest for tests.
 
 ## Requirements
 
@@ -28,17 +28,17 @@ No external packages are required.
 
 ## Quick start
 
-Clone the repository and run the verification script:
+Clone the repository, install pytest and run the tests:
 
 ```bash
-python verify_results.py
+python -m pytest tests
 ```
 
-The script exits successfully if all checks pass and raises an exception if any tested identity fails.
+The tests will pass successfully if all checks pass and fail if any tested identity fails.
 
 ## What is verified
 
-The verification script checks the main explicit constructions on finite instances that are large enough to catch implementation mistakes while still being exhaustively tractable.
+The tests check the main explicit constructions on finite instances that are large enough to catch implementation mistakes while still being exhaustively tractable.
 
 In particular, it verifies:
 
@@ -46,8 +46,8 @@ In particular, it verifies:
 - the layer-count formula on 10 small instances
 - the compatible onion-prefix count on 9 small instances
 - universal structural and arithmetic consequences on 2032 exhaustively generated finite onion prefixes
-- order-2 rank/unrank on 500 states and direct addition, multiplication, and transported division on 14,400 pairs
-- order-3 rank/unrank on 900 states and direct addition, multiplication, and transported division on 8,100 pairs
+- order-2 rank/unrank on 1,296 states and direct addition and multiplication on 1,679,616 pairs
+- order-3 rank/unrank on 4,096 states and direct addition and multiplication on 16,777,216 pairs
 - the exact carry-count formulas for both order-2 and order-3 direct arithmetic
 - the quotient and remainder layer bounds proved in the paper for transported division
 
@@ -61,21 +61,21 @@ The modules are written so they can be imported directly into a Python session o
 
 ```python
 from order2_debruijn_arithmetic import (
-    add_states,
-    anti_rho2,
-    divmod_states,
-    mod_states,
-    mul_states,
+    add_states2,
+    inverse_rho2,
+    divmod_states2,
+    mod_states2,
+    mul_states2,
     rho2,
 )
 
-x = anti_rho2(10)
-y = anti_rho2(7)
+x = inverse_rho2(10)
+y = inverse_rho2(7)
 
-assert rho2(add_states(x, y)) == 17
-assert rho2(mul_states(x, y)) == 70
-assert divmod_states(x, y) == (anti_rho2(1), anti_rho2(3))
-assert rho2(mod_states(x, y)) == 3
+assert rho2(add_states2(x, y)) == 17
+assert rho2(mul_states2(x, y)) == 70
+assert divmod_states2(x, y) == (inverse_rho2(1), inverse_rho2(3))
+assert rho2(mod_states2(x, y)) == 3
 ```
 
 ### Order 3
@@ -83,7 +83,7 @@ assert rho2(mod_states(x, y)) == 3
 ```python
 from order3_debruijn_arithmetic import (
     add_states3,
-    anti_rho3,
+    inverse_rho3,
     divmod_states3,
     mod_states3,
     mul_states3,
@@ -95,7 +95,7 @@ y = anti_rho3(11)
 
 assert rho3(add_states3(x, y)) == 31
 assert rho3(mul_states3(x, y)) == 220
-assert divmod_states3(x, y) == (anti_rho3(1), anti_rho3(9))
+assert divmod_states3(x, y) == (inverse_rho3(1), inverse_rho3(9))
 assert rho3(mod_states3(x, y)) == 9
 ```
 
