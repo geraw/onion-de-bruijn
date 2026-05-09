@@ -5,7 +5,7 @@ This repository is the code supplement for the paper:
 Dor Genosar, Yotam Svoray, and Gera Weiss,
 *Onion De Bruijn Sequences: Fixed-Window Counting by Growing the Alphabet*.
 
-A PDF of the current paper draft is included at [`paper/Onion-De-Bruijn-Sequences.pdf`](paper/Onion-De-Bruijn-Sequences.pdf).
+The paper draft can be found in the arXiv [here](https://arxiv.org/abs/1906.06157).
 
 ## What this repository provides
 
