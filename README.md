@@ -17,6 +17,8 @@ The repository contains reference implementations for the explicit arithmetic de
   Implements the analogous order-3 rank and unrank maps, canonical coordinates, direct addition and multiplication, and transported quotient/remainder in the order-3 onion representation.
 - `tests/`
   Reproduces the finite computational checks from the paper, including De Bruijn/onion structure checks, counting formulas on small instances, and exhaustive arithmetic verification for the order-2 and order-3 constructions.
+- `switching_activity.py`
+  evaluates the bounded implementation experiment discussed in Section 4. It compares a binary counter modulo $9^4$, the reflected Gray encoding of that rank counter, and the order-$4$ onion counter truncated at maximal symbol $8$, generates the onion orbit by iterating the current successor rule from $0000$, checks that this orbit agrees exactly with the reverse prefer-max order on $[9]^4$, uses a moving-pointer realization of the onion state, and reports the resulting symbol-write, bit-toggle, and peak-to-average burst statistics for both binary and Gray-coded head pointers.
 
 The code uses only the Python standard library and pytest for tests.
 
